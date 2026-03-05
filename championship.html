@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام تسجيل النقاط</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF; --bg2: #FAFAFA; --bg3: #1C1C1C;
+    --fg: #1C1C1C; --fg2: #7A6B3A;
+    --gold: #C9A84C; --gold2: #E2B94B; --gold3: #FFD700;
+    --silver: #8C8C8C; --bronze: #A0522D;
+    --green: #2E7D32; --red: #C62828; --blue: #1565C0;
+    --entry: #FFFFFF; --entry-fg: #1C1C1C;
+    --list: #FFFFFF; --list-fg: #1C1C1C;
+    --header-bg: #1C1C1C; --header-fg: #C9A84C;
+    --card: #E8D89A; --rank1: #FFFBF0; --rank2: #F8F8F8; --rank3: #FFF5EE;
+    --btn-bg: #C9A84C; --btn-fg: #FFFFFF;
+  }
+  [data-theme="dark"] {
+    --bg: #141414; --bg2: #1E1E1E; --bg3: #0D0D0D;
+    --fg: #F5F5F5; --fg2: #C9A84C;
+    --gold: #C9A84C; --gold2: #E2B94B;
+    --silver: #B0B0B0; --bronze: #CD7F32;
+    --green: #4CAF50; --red: #EF5350; --blue: #64B5F6;
+    --entry: #1E1E1E; --entry-fg: #F5F5F5;
+    --list: #1A1A1A; --list-fg: #F5F5F5;
+    --header-bg: #C9A84C; --header-fg: #0D0D0D;
+    --card: #C9A84C; --rank1: #252010; --rank2: #1E1E1E; --rank3: #201510;
+    --btn-bg: #C9A84C; --btn-fg: #0D0D0D;
+  }
+  [data-theme="contrast"] {
+    --bg: #000000; --bg2: #0A0A0A; --bg3: #000000;
+    --fg: #FFFFFF; --fg2: #FFD700;
+    --gold: #FFD700; --gold2: #FFEC6E;
+    --silver: #FFFFFF; --bronze: #FFA500;
+    --green: #00E676; --red: #FF1744; --blue: #00B0FF;
+    --entry: #0A0A0A; --entry-fg: #FFFFFF;
+    --list: #000000; --list-fg: #FFFFFF;
+    --header-bg: #FFD700; --header-fg: #000000;
+    --card: #FFD700; --rank1: #1A1400; --rank2: #0A0A0A; --rank3: #1A0A00;
+    --btn-bg: #FFD700; --btn-fg: #000000;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Amiri', serif; background: var(--bg); color: var(--fg); min-height: 100vh; transition: background .3s, color .3s; }
+
+  /* ══════ WELCOME ══════ */
+  #welcome-screen {
+    min-height: 100vh; display: flex; flex-direction: column;
+    background: radial-gradient(ellipse at 50% 40%, #3d2a00 0%, #1a1000 60%, #000 100%);
+    position: relative; overflow: hidden;
+  }
+  .stars { position: absolute; inset: 0; pointer-events: none; }
+  .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 2s infinite; }
+  @keyframes twinkle { 0%,100%{opacity:.8;} 50%{opacity:.2;} }
+
+  .welcome-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 24px; background: rgba(0,0,0,.5); border-bottom: 2px solid var(--gold);
+    position: relative; z-index: 10;
+  }
+  .lang-btns, .theme-btns { display: flex; gap: 6px; align-items: center; }
+  .lang-btns span, .theme-btns span { color: var(--gold); font-size: 13px; margin-inline-end: 8px; }
+  .topbtn {
+    padding: 4px 14px; border: none; border-radius: 4px; cursor: pointer;
+    font-family: 'Amiri', serif; font-size: 13px; transition: all .2s;
+    background: #2a2a2a; color: var(--gold);
+  }
+  .topbtn.active { background: var(--gold); color: #000; font-weight: bold; }
+  .topbtn:hover { background: var(--gold2); color: #000; }
+
+  .welcome-center {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 5;
+  }
+  .welcome-card {
+    background: rgba(28,28,28,.95); border: 2px solid var(--gold);
+    border-radius: 12px; padding: 40px 52px; text-align: center;
+    box-shadow: 0 0 60px rgba(201,168,76,.3); min-width: 340px;
+    animation: fadeIn .8s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:none} }
+
+  .trophy-svg { width: 90px; height: 90px; margin: 0 auto 10px; display: block; }
+  .divider-gold { width: 260px; height: 2px; background: var(--gold); margin: 8px auto; }
+  .welcome-title { color: var(--gold); font-size: 22px; font-weight: bold; line-height: 1.5; margin: 12px 0 4px; }
+  .welcome-sub { color: #aaa; font-size: 13px; margin-bottom: 12px; }
+  .enter-btn {
+    background: var(--gold); color: #000; border: none; padding: 14px 44px;
+    font-size: 16px; font-weight: bold; font-family: 'Amiri', serif;
+    border-radius: 6px; cursor: pointer; margin-top: 10px; transition: background .2s, transform .1s;
+  }
+  .enter-btn:hover { background: var(--gold2); transform: scale(1.03); }
+  .welcome-footer { text-align: center; padding: 12px; color: #666; font-size: 12px; position: relative; z-index: 5; }
+
+  /* ══════ MAIN APP ══════ */
+  #main-app { display: none; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    background: var(--bg3); height: 52px; display: flex; align-items: center;
+    padding: 0 16px; border-bottom: 2px solid var(--gold); gap: 10px; position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-title { color: var(--gold); font-family: 'Cinzel', serif; font-size: 17px; font-weight: bold; flex: 1; text-align: center; }
+  .topbar-btn { padding: 4px 12px; border: none; cursor: pointer; font-family: 'Amiri', serif; font-size: 13px; border-radius: 4px; transition: all .2s; }
+
+  /* Tabs */
+  .tabs { display: flex; background: var(--bg2); border-bottom: 2px solid var(--gold); }
+  .tab-btn {
+    padding: 12px 22px; border: none; background: var(--bg2); color: var(--fg2);
+    font-family: 'Amiri', serif; font-size: 14px; font-weight: bold; cursor: pointer;
+    transition: all .2s; border-bottom: 3px solid transparent;
+  }
+  .tab-btn.active { background: var(--gold); color: var(--bg3); border-bottom-color: var(--gold); }
+  .tab-btn:hover:not(.active) { background: var(--card); color: var(--fg); }
+
+  .tab-content { display: none; padding: 16px; flex: 1; }
+  .tab-content.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--card); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .card-title { color: var(--gold); font-size: 15px; font-weight: bold; margin-bottom: 10px; }
+
+  /* Status bar */
+  .status-bar {
+    background: var(--bg3); display: flex; align-items: center; gap: 16px;
+    padding: 8px 14px; border-radius: 6px; margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .status-label { color: var(--gold); font-size: 13px; font-weight: bold; }
+  .status-total { font-size: 15px; font-weight: bold; }
+  .status-break { color: var(--fg2); font-size: 12px; }
+
+  /* Form elements */
+  label.field-label { display: block; color: var(--fg); font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+  input[type=text], input[type=number] {
+    background: var(--entry); color: var(--entry-fg); border: 2px solid var(--card);
+    border-radius: 6px; padding: 8px 12px; font-family: 'Amiri', serif; font-size: 14px;
+    width: 100%; outline: none; transition: border .2s;
+  }
+  input:focus { border-color: var(--gold); }
+  .err-msg { color: var(--red); font-size: 12px; min-height: 16px; margin-top: 2px; }
+  .radio-group { display: flex; gap: 20px; flex-wrap: wrap; margin: 8px 0; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+
+  .btn {
+    padding: 9px 26px; border: none; border-radius: 6px; cursor: pointer;
+    font-family: 'Amiri', serif; font-size: 14px; font-weight: bold;
+    transition: all .2s;
+  }
+  .btn-gold { background: var(--gold); color: var(--btn-fg); }
+  .btn-gold:hover { background: var(--gold2); }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-red:hover { filter: brightness(1.1); }
+  .btn-plain { background: var(--bg2); color: var(--fg); border: 1px solid var(--card); }
+  .btn-plain:hover { background: var(--card); }
+
+  /* List */
+  .part-list { background: var(--list); border: 1px solid var(--card); border-radius: 6px; max-height: 200px; overflow-y: auto; }
+  .list-item { padding: 7px 14px; font-size: 13px; color: var(--list-fg); border-bottom: 1px solid var(--card); }
+  .list-item:last-child { border-bottom: none; }
+  .list-header { padding: 5px 14px; background: var(--bg3); color: var(--gold); font-size: 12px; font-weight: bold; }
+
+  /* Events table */
+  .events-table { width: 100%; border-collapse: collapse; }
+  .events-table th { background: var(--header-bg); color: var(--header-fg); padding: 10px; text-align: center; font-size: 13px; }
+  .events-table td { padding: 8px 6px; text-align: center; font-size: 13px; border-bottom: 1px solid var(--card); }
+  .events-table tr:nth-child(even) td { background: var(--bg2); }
+  .events-table tr:nth-child(odd) td { background: var(--bg); }
+  .saved-pts { color: var(--green); font-weight: bold; }
+  .score-entry { width: 90px; }
+
+  /* Board */
+  .rank-card { border-radius: 8px; padding: 14px 20px; margin-bottom: 10px; }
+  .rank1-card { background: var(--rank1); border: 2px solid var(--gold); }
+  .rank2-card { background: var(--rank2); border: 2px solid var(--silver); }
+  .rank3-card { background: var(--rank3); border: 2px solid var(--bronze); }
+  .rank-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .rank-medal { font-size: 22px; }
+  .rank-name { font-size: 17px; font-weight: bold; color: var(--fg); }
+  .rank-pts { font-size: 14px; font-weight: bold; }
+  .rank-members { font-size: 12px; color: var(--fg2); margin-top: 4px; }
+  .rank-events { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .rank-events span { background: var(--bg3); color: var(--gold); font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .other-rank { display: flex; align-items: center; gap: 12px; background: var(--bg2); border: 1px solid var(--card); border-radius: 6px; padding: 8px 14px; margin-bottom: 6px; flex-wrap: wrap; }
+  .board-title { text-align: center; color: var(--gold); font-size: 20px; font-weight: bold; margin: 12px 0 6px; font-family: 'Cinzel', serif; }
+
+  /* About */
+  .about-center { text-align: center; padding: 24px; }
+  .about-trophy { font-size: 60px; }
+  .about-title { color: var(--gold); font-size: 26px; font-weight: bold; font-family: 'Cinzel', serif; margin: 8px 0; }
+  .owner-card { display: inline-block; background: var(--bg2); border: 2px solid var(--gold); border-radius: 8px; padding: 16px 32px; margin: 12px 0; }
+  .owner-name { color: var(--gold); font-size: 17px; font-weight: bold; }
+  .color-pal { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .pal-box { background: var(--bg2); border: 1px solid var(--card); border-radius: 6px; padding: 8px 14px; text-align: center; }
+  .pal-swatch { width: 50px; height: 18px; border-radius: 3px; margin: 0 auto 4px; }
+  .pal-label { font-size: 11px; color: var(--fg); }
+
+  /* Accessibility panel */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg); border: 2px solid var(--gold); border-radius: 10px; padding: 28px 32px; min-width: 280px; max-width: 95vw; }
+  .modal-title { color: var(--gold); font-size: 18px; font-weight: bold; margin-bottom: 14px; }
+  .modal-close { float: left; background: none; border: none; color: var(--fg2); cursor: pointer; font-size: 18px; }
+  .font-ctrl { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .font-size-lbl { color: var(--gold); font-size: 17px; font-weight: bold; min-width: 28px; text-align: center; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 7px; } ::-webkit-scrollbar-track { background: var(--bg2); } ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--bg3); color: var(--gold); border: 1px solid var(--gold); padding: 10px 26px; border-radius: 8px; font-size: 14px; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  /* Combo */
+  select {
+    background: var(--entry); color: var(--entry-fg); border: 2px solid var(--card);
+    border-radius: 6px; padding: 8px 12px; font-family: 'Amiri', serif; font-size: 14px;
+    width: 100%; outline: none; cursor: pointer;
+  }
+  select:focus { border-color: var(--gold); }
+
+  /* Team chooser dialog */
+  .team-member-form { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+  .team-row { display: flex; align-items: center; gap: 8px; }
+  .team-row label { min-width: 70px; font-size: 13px; }
+
+  .req-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .board-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  @media(max-width:600px) {
+    .welcome-card { padding: 24px 16px; min-width: unset; width: 95vw; }
+    .tabs { overflow-x: auto; }
+    .tab-btn { padding: 10px 12px; font-size: 12px; }
+    .topbar-title { font-size: 13px; }
+    .events-table th, .events-table td { font-size: 11px; padding: 5px 3px; }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<!-- ════════ WELCOME ════════ -->
+<div id="welcome-screen">
+  <div class="stars" id="stars"></div>
+  <div class="welcome-topbar">
+    <div class="lang-btns">
+      <span id="lbl-lang">اللغة</span>
+      <button class="topbtn active" onclick="setLang('ar')">العربية</button>
+      <button class="topbtn" onclick="setLang('en')">English</button>
+      <button class="topbtn" onclick="setLang('tr')">Türkçe</button>
+    </div>
+    <div class="theme-btns">
+      <button class="topbtn active" onclick="setTheme('light')">☀</button>
+      <button class="topbtn" onclick="setTheme('dark')">🌙</button>
+      <button class="topbtn" onclick="setTheme('contrast')">◐</button>
+    </div>
+  </div>
+  <div class="welcome-center">
+    <div class="welcome-card">
+      <svg class="trophy-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="tg" cx="50%" cy="40%"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#C9A84C"/></radialGradient>
+        </defs>
+        <circle cx="50" cy="50" r="48" fill="url(#tg)" opacity=".15" stroke="#C9A84C" stroke-width="2"/>
+        <rect x="42" y="70" width="16" height="12" fill="#C9A84C"/>
+        <rect x="34" y="81" width="32" height="7" rx="3" fill="#C9A84C"/>
+        <ellipse cx="50" cy="44" rx="22" ry="20" fill="#FFD700" stroke="#C9A84C" stroke-width="2"/>
+        <path d="M28 36 Q18 36 20 50 Q22 60 32 56" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
+        <path d="M72 36 Q82 36 80 50 Q78 60 68 56" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="50" cy="38" r="6" fill="#C9A84C"/>
+        <circle cx="40" cy="48" r="4" fill="#C9A84C" opacity=".7"/>
+        <circle cx="60" cy="48" r="4" fill="#C9A84C" opacity=".7"/>
+      </svg>
+      <div class="divider-gold"></div>
+      <div class="welcome-title" id="w-title">أهلاً بكم في<br>نظام إدارة تسجيل النقاط للبطولة</div>
+      <div class="welcome-sub" id="w-sub">نظام إدارة النقاط للبطولة</div>
+      <div class="divider-gold"></div>
+      <button class="enter-btn" id="w-enter" onclick="enterApp()">دخول →</button>
+    </div>
+  </div>
+  <div class="welcome-footer">© 2025   هلالات استبرق   |  v2.0</div>
+</div>
+
+<!-- ════════ MAIN APP ════════ -->
+<div id="main-app">
+  <div class="topbar">
+    <button class="topbar-btn btn-gold" onclick="openAccPanel()" id="tb-access">♿ إمكانية الوصول</button>
+    <button class="topbar-btn btn-plain" onclick="toggleTheme()" id="tb-theme">🌙 الوضع الداكن</button>
+    <div class="topbar-title" id="tb-title">نظام تسجيل النقاط</div>
+    <button class="topbtn" onclick="setLang('ar')" id="lb-ar">ع</button>
+    <button class="topbtn" onclick="setLang('en')" id="lb-en">EN</button>
+    <button class="topbtn" onclick="setLang('tr')" id="lb-tr">TR</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab(0)" id="tab0">المشاركون</button>
+    <button class="tab-btn" onclick="showTab(1)" id="tab1">الأحداث والنقاط</button>
+    <button class="tab-btn" onclick="showTab(2)" id="tab2">لوحة النتائج</button>
+    <button class="tab-btn" onclick="showTab(3)" id="tab3">عن البرنامج</button>
+  </div>
+
+  <!-- TAB 0: Participants -->
+  <div class="tab-content active" id="tc0">
+    <div class="status-bar">
+      <span class="status-label" id="lbl-regstatus">حالة التسجيل:</span>
+      <span class="status-total" id="status-total" style="color:var(--red)">إجمالي الأشخاص: 0/20</span>
+      <span class="status-break" id="status-break"></span>
+    </div>
+    <div class="card">
+      <label class="field-label" id="lbl-name">اسم المشارك أو الفريق</label>
+      <input type="text" id="name-input" oninput="liveNameCheck()" placeholder="">
+      <div class="err-msg" id="name-err"></div>
+      <div class="radio-group" style="margin-top:10px">
+        <label><input type="radio" name="ptype" value="individual" checked onchange=""> <span id="lbl-individual">فردي</span></label>
+        <label><input type="radio" name="ptype" value="team" onchange=""> <span id="lbl-team5">فريق (5 أعضاء)</span></label>
+      </div>
+      <button class="btn btn-gold" style="margin-top:10px" onclick="addParticipant()" id="btn-add">إضافة</button>
+    </div>
+    <div style="color:var(--fg);font-size:13px;margin-bottom:6px" id="lbl-registered">المشاركون المسجلون:</div>
+    <div class="part-list" id="part-list"></div>
+  </div>
+
+  <!-- TAB 1: Scores -->
+  <div class="tab-content" id="tc1">
+    <div class="card" style="display:flex;gap:24px;flex-wrap:wrap">
+      <div style="min-width:180px">
+        <label class="field-label" id="lbl-choosepart">اختر المشارك:</label>
+        <select id="part-combo" onchange="onPartSelected()">
+          <option value="">—</option>
+        </select>
+      </div>
+      <div style="min-width:200px">
+        <label class="field-label" id="lbl-mode">وضع المشاركة:</label>
+        <div class="radio-group">
+          <label><input type="radio" name="smode" value="single" id="r-single" onchange="onModeChanged()"> <span id="lbl-single">حدث واحد فقط</span></label>
+          <label><input type="radio" name="smode" value="full" id="r-full" onchange="onModeChanged()"> <span id="lbl-five">خمسة أحداث</span></label>
+        </div>
+        <div id="mode-info" style="color:var(--gold);font-size:12px;margin-top:4px"></div>
+        <div class="err-msg" id="mode-err"></div>
+      </div>
+    </div>
+    <div class="card-title" id="lbl-eventstable">الأحداث وتسجيل النقاط:</div>
+    <div style="overflow-x:auto">
+      <table class="events-table" id="events-table">
+        <thead>
+          <tr>
+            <th id="th-event">الحدث</th>
+            <th id="th-input">النقاط المدخلة</th>
+            <th id="th-saved">النقاط المسجلة</th>
+            <th id="th-save">حفظ</th>
+          </tr>
+        </thead>
+        <tbody id="events-body"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+      <span id="lbl-total" style="font-weight:bold">إجمالي النقاط:</span>
+      <span id="total-lbl" style="color:var(--gold);font-size:20px;font-weight:bold">—</span>
+    </div>
+  </div>
+
+  <!-- TAB 2: Board -->
+  <div class="tab-content" id="tc2">
+    <div class="card req-bar">
+      <span style="color:var(--gold);font-weight:bold;font-size:13px" id="lbl-resultsreq">متطلبات عرض النتائج:</span>
+      <span id="req-total" style="font-size:15px;font-weight:bold;color:var(--red)">0/20</span>
+      <span id="req-status" style="font-size:14px;font-weight:bold;color:var(--red)"></span>
+    </div>
+    <div class="board-btns">
+      <button class="btn btn-plain" onclick="updateStatus()" id="btn-refresh">تحديث الحالة</button>
+      <button class="btn btn-gold" onclick="showBoard()" id="btn-show">عرض النتائج</button>
+      <button class="btn btn-red" onclick="clearAll()" id="btn-delete">حذف جميع البيانات</button>
+    </div>
+    <div id="board-area"></div>
+  </div>
+
+  <!-- TAB 3: About -->
+  <div class="tab-content" id="tc3">
+    <div class="about-center">
+      <div class="about-trophy">🏆</div>
+      <div class="about-title" id="lbl-about-title">عن البرنامج</div>
+      <div class="divider-gold" style="margin:10px auto"></div>
+      <p id="about-text" style="font-size:15px;line-height:1.8;margin:10px auto;max-width:500px;color:var(--fg)">
+        نظام تسجيل نقاط البطولة<br>النسخة 2.0 الاحترافية<br><br>
+        تم تطويره لإدارة بطولة الكلية باحترافية.<br>يدعم الفرق والأفراد، 5 أحداث ثابتة.
+      </p>
+      <div class="owner-card">
+        <div class="owner-name" id="owner-line">تطوير وتصميم: استبرق هلالات</div>
+        <div style="color:var(--fg2);font-size:12px;margin-top:4px">© 2025 — جميع الحقوق محفوظة</div>
+      </div>
+      <div class="color-pal">
+        <div class="pal-box"><div class="pal-swatch" style="background:var(--gold)"></div><div class="pal-label">Gold</div></div>
+        <div class="pal-box"><div class="pal-swatch" style="background:var(--green)"></div><div class="pal-label">Success</div></div>
+        <div class="pal-box"><div class="pal-swatch" style="background:var(--fg)"></div><div class="pal-label">Text</div></div>
+        <div class="pal-box"><div class="pal-swatch" style="background:var(--red)"></div><div class="pal-label">Alert</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODALS ════════ -->
+<!-- Accessibility -->
+<div class="modal-overlay" id="acc-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('acc-modal')">✕</button>
+    <div class="modal-title" id="lbl-acc">♿ إمكانية الوصول</div>
+    <div class="font-ctrl">
+      <span id="lbl-fontsize">حجم الخط:</span>
+      <button class="btn btn-plain" style="padding:4px 12px" onclick="chgFont(-1)">A-</button>
+      <span class="font-size-lbl" id="font-lbl">14</span>
+      <button class="btn btn-plain" style="padding:4px 12px;font-size:16px" onclick="chgFont(1)">A+</button>
+    </div>
+    <button class="btn btn-gold" style="width:100%" onclick="setTheme('contrast');closeModal('acc-modal')" id="lbl-contrast">تباين عالٍ</button>
+  </div>
+</div>
+
+<!-- Team members -->
+<div class="modal-overlay" id="team-modal">
+  <div class="modal">
+    <div class="modal-title" id="team-modal-title">أدخل أسماء أعضاء الفريق:</div>
+    <div class="team-member-form" id="team-members-form"></div>
+    <div class="err-msg" id="team-err" style="margin-top:6px"></div>
+    <button class="btn btn-gold" style="margin-top:14px;width:100%" onclick="saveTeamMembers()" id="btn-save-team">حفظ</button>
+  </div>
+</div>
+
+<!-- Single event chooser -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <div class="modal-title" id="event-modal-title">اختر الحدث:</div>
+    <div id="event-choices" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"></div>
+    <button class="btn btn-gold" style="width:100%;margin-top:10px" onclick="confirmEvent()" id="btn-confirm-event">تأكيد</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════
+//  DATA
+// ══════════════════════════════
+const FIXED_EVENTS = ["سباق","سباحة","شطرنج","رياضات","كرة قدم"];
+const REQUIRED = 20, MAX_TEAMS = 4, TEAM_SIZE = 5;
+
+const LANGS = {
+  ar: {
+    app_title:"نظام تسجيل النقاط",welcome_title:"أهلاً بكم في\nنظام إدارة تسجيل النقاط للبطولة",
+    welcome_subtitle:"نظام إدارة النقاط للبطولة",enter_btn:"دخول →",choose_lang:"اللغة اختر",
+    tab_participants:"المشاركون",tab_scores:"الأحداث والنقاط",tab_board:"لوحة النتائج",tab_about:"عن البرنامج",
+    reg_status:"حالة التسجيل:",total_people:"إجمالي الأشخاص:",individuals_lbl:"أفراد:",team_members_lbl:"أعضاء فرق:",
+    name_label:"اسم المشارك أو الفريق",add_btn:"إضافة",individual:"فردي",team_5:"فريق (5 أعضاء)",
+    registered:"المشاركون المسجلون:",team_members_win:"أدخل أسماء أعضاء الفريق:",member_n:"العضو",save_btn:"حفظ",
+    choose_participant:"اختر المشارك:",mode_label:"وضع المشاركة:",single_event:"حدث واحد فقط",five_events:"خمسة أحداث",
+    events_table:"الأحداث وتسجيل النقاط:",event_col:"الحدث",input_pts:"النقاط المدخلة",saved_pts:"النقاط المسجلة",save_col:"حفظ",
+    total_pts:"إجمالي النقاط:",results_req:"متطلبات عرض النتائج:",refresh_btn:"تحديث الحالة",show_results:"عرض النتائج",delete_all:"حذف جميع البيانات",
+    results_title:"━━━  نتائج البطولة  ━━━",rank1:"🥇 المركز الأول",rank2:"🥈 المركز الثاني",rank3:"🥉 المركز الثالث",
+    total_score:"إجمالي النقاط:",members_lbl:"الأعضاء:",rest_title:"─── بقية المشاركين ───",
+    winner_msg:"🏆 تهانينا!\n{} حصل على المركز الأول!",accessibility:"♿ إمكانية الوصول",font_size:"حجم الخط:",
+    high_contrast:"تباين عالٍ",dark_mode:"الوضع الداكن",light_mode:"الوضع الفاتح",about_title:"عن البرنامج",
+    about_text:"نظام تسجيل نقاط البطولة\nالنسخة 2.0 الاحترافية\n\nتم تطويره لإدارة بطولة الكلية باحترافية.\nيدعم الفرق والأفراد، 5 أحداث ثابتة.",
+    owner_line:"تطوير وتصميم: استبرق هلالات",choose_event:"اختر الحدث الذي سيشارك فيه:",confirm_btn:"تأكيد",
+    warning:"تحذير",error:"خطأ",success:"نجاح",notice:"تنبيه",confirm:"تأكيد",
+    field_required:"هذا الحقل مطلوب.",name_not_number:"يجب إدخال اسم وليس رقماً.",invalid_chars:"الاسم يحتوي على رموز غير مسموح بها.",
+    pts_required:"أدخل النقاط.",pts_positive:"يجب أن تكون النقاط موجبة وأكبر من صفر.",pts_integer:"يجب أن تكون النقاط رقماً صحيحاً.",
+    name_exists:"هذا الاسم موجود مسبقاً.",max_teams:"الحد الأقصى للفرق 4 فرق.",max_total:"تم الوصول للحد الأقصى (20 شخصاً).",
+    choose_part_first:"اختر مشاركاً أولاً.",choose_mode_first:"اختر وضع المشاركة أولاً.",no_participants:"لا يوجد مشاركون مسجلون.",
+    no_scores:"لم يتم تسجيل أي نقاط بعد.",missing_people:"ينقص {n} شخص للوصول للحد المطلوب (20).",
+    confirm_delete:"هل أنت متأكد من حذف جميع البيانات؟",deleted_success:"تم حذف جميع البيانات بنجاح.",
+    mode_set:"الوضع:",mode_chosen:"الوضع المختار:",mode_single_info:"وضع: حدث واحد | الحدث:",already_set:"وضع المشاركة محدد مسبقاً.",
+    members_in_team:"[{cur}/{max} أعضاء]",choose_first:"اختر وضع المشاركة أولاً.",
+    completed:"✓ مكتمل – يمكن عرض النتائج",missing_n:"⚠ ينقص {n} شخص",
+    individual_lbl:"الأفراد",teams_lbl:"الفرق",no_members:"(لا يوجد أعضاء)",
+    system_empty:"النظام فارغ بالفعل.",members_note:"تنبيه: يمكن إضافة {} عضو فقط",
+  },
+  en: {
+    app_title:"Points Scoring Program",welcome_title:"Welcome to\nChampionship Scoring Management System",
+    welcome_subtitle:"Professional Scoring Management System",enter_btn:"Enter →",choose_lang:"Choose Language",
+    tab_participants:"Participants",tab_scores:"Events & Scores",tab_board:"Leaderboard",tab_about:"About",
+    reg_status:"Registration Status:",total_people:"Total People:",individuals_lbl:"Individuals:",team_members_lbl:"Team Members:",
+    name_label:"Participant or Team Name",add_btn:"Add",individual:"Individual",team_5:"Team (5 Members)",
+    registered:"Registered Participants:",team_members_win:"Enter team member names:",member_n:"Member",save_btn:"Save",
+    choose_participant:"Select Participant:",mode_label:"Participation Mode:",single_event:"Single Event Only",five_events:"Five Events",
+    events_table:"Events & Score Entry:",event_col:"Event",input_pts:"Enter Points",saved_pts:"Saved Points",save_col:"Save",
+    total_pts:"Total Points:",results_req:"Results Requirements:",refresh_btn:"Refresh Status",show_results:"Show Results",delete_all:"Delete All Data",
+    results_title:"━━━  Championship Results  ━━━",rank1:"🥇 1st Place",rank2:"🥈 2nd Place",rank3:"🥉 3rd Place",
+    total_score:"Total Points:",members_lbl:"Members:",rest_title:"─── Other Participants ───",
+    winner_msg:"🏆 Congratulations!\n{} won 1st place!",accessibility:"♿ Accessibility",font_size:"Font Size:",
+    high_contrast:"High Contrast",dark_mode:"Dark Mode",light_mode:"Light Mode",about_title:"About",
+    about_text:"Championship Scoring System\nVersion 2.0 Professional\n\nDeveloped to manage college championships.\nSupports teams and individuals, 5 fixed events.",
+    owner_line:"Developed by: Istabraq Hilalat",choose_event:"Choose the event for:",confirm_btn:"Confirm",
+    warning:"Warning",error:"Error",success:"Success",notice:"Notice",confirm:"Confirm",
+    field_required:"This field is required.",name_not_number:"Name must not be a number.",invalid_chars:"Name contains invalid characters.",
+    pts_required:"Enter points.",pts_positive:"Points must be positive and greater than zero.",pts_integer:"Points must be a whole number.",
+    name_exists:"This name already exists.",max_teams:"Maximum 4 teams allowed.",max_total:"Maximum 20 people reached.",
+    choose_part_first:"Please select a participant first.",choose_mode_first:"Please select participation mode first.",no_participants:"No participants registered.",
+    no_scores:"No scores recorded yet.",missing_people:"{n} more people needed (20 required).",
+    confirm_delete:"Are you sure you want to delete all data?",deleted_success:"All data deleted successfully.",
+    mode_set:"Mode:",mode_chosen:"Chosen mode:",mode_single_info:"Mode: Single Event | Event:",already_set:"Participation mode already set.",
+    members_in_team:"[{cur}/{max} members]",choose_first:"Choose participation mode first.",
+    completed:"✓ Complete – Results available",missing_n:"⚠ {n} more needed",
+    individual_lbl:"Individuals",teams_lbl:"Teams",no_members:"(no members)",
+    system_empty:"System is already empty.",members_note:"Note: can add {} members only",
+  },
+  tr: {
+    app_title:"Puanlama Programı",welcome_title:"Hoş Geldiniz\nŞampiyona Puanlama Yönetim Sistemine",
+    welcome_subtitle:"Profesyonel Puan Yönetim Sistemi",enter_btn:"Giriş →",choose_lang:"Dil Seçin",
+    tab_participants:"Katılımcılar",tab_scores:"Etkinlikler & Puanlar",tab_board:"Sıralama",tab_about:"Hakkında",
+    reg_status:"Kayıt Durumu:",total_people:"Toplam Kişi:",individuals_lbl:"Bireysel:",team_members_lbl:"Takım Üyeleri:",
+    name_label:"Katılımcı veya Takım Adı",add_btn:"Ekle",individual:"Bireysel",team_5:"Takım (5 Üye)",
+    registered:"Kayıtlı Katılımcılar:",team_members_win:"Takım üyelerinin adlarını girin:",member_n:"Üye",save_btn:"Kaydet",
+    choose_participant:"Katılımcı Seçin:",mode_label:"Katılım Modu:",single_event:"Yalnızca Tek Etkinlik",five_events:"Beş Etkinlik",
+    events_table:"Etkinlikler ve Puan Girişi:",event_col:"Etkinlik",input_pts:"Puan Gir",saved_pts:"Kaydedilen Puan",save_col:"Kaydet",
+    total_pts:"Toplam Puan:",results_req:"Sonuç Gereksinimleri:",refresh_btn:"Durumu Güncelle",show_results:"Sonuçları Göster",delete_all:"Tüm Verileri Sil",
+    results_title:"━━━  Şampiyona Sonuçları  ━━━",rank1:"🥇 1. Sıra",rank2:"🥈 2. Sıra",rank3:"🥉 3. Sıra",
+    total_score:"Toplam Puan:",members_lbl:"Üyeler:",rest_title:"─── Diğer Katılımcılar ───",
+    winner_msg:"🏆 Tebrikler!\n{} birinci oldu!",accessibility:"♿ Erişilebilirlik",font_size:"Yazı Boyutu:",
+    high_contrast:"Yüksek Kontrast",dark_mode:"Karanlık Mod",light_mode:"Açık Mod",about_title:"Hakkında",
+    about_text:"Şampiyona Puanlama Sistemi\nSürüm 2.0 Profesyonel\n\nKolej şampiyonalarını profesyonelce yönetmek için.\nTakımları ve bireyleri destekler, 5 sabit etkinlik.",
+    owner_line:"Geliştiren: Istabraq Hilalat",choose_event:"Katılacağı etkinliği seçin:",confirm_btn:"Onayla",
+    warning:"Uyarı",error:"Hata",success:"Başarılı",notice:"Bildirim",confirm:"Onayla",
+    field_required:"Bu alan zorunludur.",name_not_number:"Ad bir sayı olamaz.",invalid_chars:"Ad geçersiz karakterler içeriyor.",
+    pts_required:"Puan girin.",pts_positive:"Puan sıfırdan büyük pozitif olmalıdır.",pts_integer:"Puan tam sayı olmalıdır.",
+    name_exists:"Bu isim zaten mevcut.",max_teams:"En fazla 4 takıma izin verilir.",max_total:"20 kişi sınırına ulaşıldı.",
+    choose_part_first:"Önce katılımcı seçin.",choose_mode_first:"Önce katılım modunu seçin.",no_participants:"Kayıtlı katılımcı yok.",
+    no_scores:"Henüz puan kaydedilmedi.",missing_people:"{n} kişi daha gerekiyor.",
+    confirm_delete:"Tüm verileri silmek istediğinizden emin misiniz?",deleted_success:"Tüm veriler başarıyla silindi.",
+    mode_set:"Mod:",mode_chosen:"Seçilen mod:",mode_single_info:"Mod: Tek Etkinlik | Etkinlik:",already_set:"Katılım modu zaten ayarlandı.",
+    members_in_team:"[{cur}/{max} üye]",choose_first:"Önce katılım modunu seçin.",
+    completed:"✓ Tamamlandı – Sonuçlar mevcut",missing_n:"⚠ {n} daha gerekli",
+    individual_lbl:"Bireysel",teams_lbl:"Takımlar",no_members:"(üye yok)",
+    system_empty:"Sistem zaten boş.",members_note:"Not: yalnızca {} üye eklenebilir",
+  }
+};
+
+let currentLang = 'ar';
+let currentTheme = 'light';
+let fontSize = 14;
+let participants = []; // [{name,isTeam,members,scores,mode}]
+let pendingTeamName = '';
+let pendingTeamMaxMembers = 0;
+let pendingEventParticipant = null;
+let currentEventChoice = FIXED_EVENTS[0];
+
+function T(k, vars) {
+  let s = LANGS[currentLang][k] || k;
+  if (vars) Object.entries(vars).forEach(([k,v]) => s = s.replace(`{${k}}`, v).replace('{}', v));
+  return s;
+}
+
+// ══════ STORAGE ══════
+function saveData() {
+  try { localStorage.setItem('champ_data', JSON.stringify(participants)); } catch(e){}
+}
+function loadData() {
+  try { const d = localStorage.getItem('champ_data'); if(d) participants = JSON.parse(d); } catch(e){}
+}
+
+// ══════ STARS ══════
+function makeStars() {
+  const c = document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const s = document.createElement('div'); s.className='star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*60}%;width:${Math.random()<.8?2:3}px;height:${Math.random()<.8?2:3}px;opacity:${.3+Math.random()*.7};animation-delay:${Math.random()*3}s;animation-duration:${1.5+Math.random()*2}s`;
+    c.appendChild(s);
+  }
+}
+
+// ══════ THEME / LANG ══════
+function setTheme(t) {
+  currentTheme = t;
+  document.body.setAttribute('data-theme', t);
+  document.querySelectorAll('.topbtn').forEach(b => b.classList.remove('active'));
+  updateTopbarThemeBtn();
+  translateAll();
+}
+function toggleTheme() {
+  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+function setLang(l) {
+  currentLang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  translateAll();
+  refreshList(); refreshCombo(); updateStatus();
+  buildEventsTable();
+}
+function updateTopbarThemeBtn() {
+  const btn = document.getElementById('tb-theme');
+  if(!btn) return;
+  if(currentTheme === 'dark') btn.textContent = '☀ ' + T('light_mode');
+  else btn.textContent = '🌙 ' + T('dark_mode');
+}
+function chgFont(d) {
+  fontSize = Math.max(10, Math.min(22, fontSize + d));
+  document.body.style.fontSize = fontSize + 'px';
+  const lbl = document.getElementById('font-lbl');
+  if(lbl) lbl.textContent = fontSize;
+}
+
+// ══════ TRANSLATE ══════
+function translateAll() {
+  const el = (id) => document.getElementById(id);
+  const setText = (id, k) => { const e=el(id); if(e) e.textContent=T(k); };
+  setText('lbl-lang','choose_lang');
+  setText('w-title','welcome_title');
+  setText('w-sub','welcome_subtitle');
+  setText('w-enter','enter_btn');
+  setText('tb-title','app_title');
+  setText('tb-access','accessibility');
+  const tabs = ['tab_participants','tab_scores','tab_board','tab_about'];
+  tabs.forEach((k,i) => setText('tab'+i, k));
+  setText('lbl-regstatus','reg_status');
+  setText('lbl-name','name_label');
+  setText('btn-add','add_btn');
+  setText('lbl-individual','individual');
+  setText('lbl-team5','team_5');
+  setText('lbl-registered','registered');
+  setText('lbl-choosepart','choose_participant');
+  setText('lbl-mode','mode_label');
+  setText('lbl-single','single_event');
+  setText('lbl-five','five_events');
+  setText('lbl-eventstable','events_table');
+  setText('th-event','event_col');
+  setText('th-input','input_pts');
+  setText('th-saved','saved_pts');
+  setText('th-save','save_col');
+  setText('lbl-total','total_pts');
+  setText('lbl-resultsreq','results_req');
+  setText('btn-refresh','refresh_btn');
+  setText('btn-show','show_results');
+  setText('btn-delete','delete_all');
+  setText('lbl-acc','accessibility');
+  setText('lbl-contrast','high_contrast');
+  setText('lbl-fontsize','font_size');
+  setText('lbl-about-title','about_title');
+  setText('about-text','about_text');
+  setText('owner-line','owner_line');
+  setText('btn-save-team','save_btn');
+  setText('btn-confirm-event','confirm_btn');
+  updateTopbarThemeBtn();
+  ['ar','en','tr'].forEach(l => {
+    const b = el('lb-'+l); if(b) b.classList.toggle('active', l===currentLang);
+  });
+}
+
+// ══════ WELCOME → APP ══════
+function enterApp() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+  document.getElementById('main-app').style.flexDirection = 'column';
+  loadData();
+  translateAll(); refreshList(); refreshCombo(); updateStatus(); buildEventsTable();
+}
+
+// ══════ TABS ══════
+function showTab(i) {
+  document.querySelectorAll('.tab-content').forEach((t,j) => t.classList.toggle('active', i===j));
+  document.querySelectorAll('.tab-btn').forEach((t,j) => t.classList.toggle('active', i===j));
+}
+
+// ══════ VALIDATION ══════
+function validateName(v) {
+  if(!v || !v.trim()) return {ok:false, msg:T('field_required')};
+  v = v.trim();
+  if(v.replace(/\s/g,'') !== '' && /^[\d\-\s]+$/.test(v)) return {ok:false, msg:T('name_not_number')};
+  for(const ch of '@#$%^&*!~`=+<>') if(v.includes(ch)) return {ok:false, msg:T('invalid_chars')};
+  return {ok:true, msg:''};
+}
+function validatePoints(v) {
+  if(!v || !v.trim()) return {ok:false, msg:T('pts_required')};
+  const n = parseInt(v.trim());
+  if(isNaN(n) || !Number.isInteger(Number(v.trim()))) return {ok:false, msg:T('pts_integer')};
+  if(n <= 0) return {ok:false, msg:T('pts_positive')};
+  return {ok:true, msg:''};
+}
+
+// ══════ PARTICIPANTS ══════
+function countIndividuals() { return participants.filter(p=>!p.isTeam).length; }
+function countTeams() { return participants.filter(p=>p.isTeam).length; }
+function countTotalPeople() { return countIndividuals() + participants.filter(p=>p.isTeam).reduce((a,t)=>a+t.members.length,0); }
+function getParticipant(name) { return participants.find(p=>p.name===name)||null; }
+
+function liveNameCheck() {
+  const v = document.getElementById('name-input').value.trim();
+  const err = document.getElementById('name-err');
+  if(!v){err.textContent='';return;}
+  const r = validateName(v);
+  err.textContent = r.ok ? '' : r.msg;
+  err.style.color = 'var(--red)';
+}
+
+function addParticipant() {
+  const name = document.getElementById('name-input').value.trim();
+  const r = validateName(name);
+  if(!r.ok){ showErr('name-err', r.msg); return; }
+  clearErr('name-err');
+  const isTeam = document.querySelector('input[name="ptype"]:checked').value === 'team';
+  if(participants.find(p=>p.name===name)){ showErr('name-err', T('name_exists')); return; }
+  if(isTeam) {
+    if(countTeams() >= MAX_TEAMS){ alert(T('max_teams')); return; }
+    const rem = REQUIRED - countTotalPeople();
+    const mta = Math.min(TEAM_SIZE, rem);
+    if(mta <= 0){ alert(T('max_total')); return; }
+    participants.push({name, isTeam:true, members:[], scores:{}, mode:null});
+    pendingTeamName = name; pendingTeamMaxMembers = mta;
+    openTeamModal(name, mta);
+  } else {
+    if(countTotalPeople() >= REQUIRED){ alert(T('max_total')); return; }
+    participants.push({name, isTeam:false, members:[], scores:{}, mode:null});
+    saveData();
+  }
+  document.getElementById('name-input').value = '';
+  clearErr('name-err');
+  refreshList(); refreshCombo(); updateStatus();
+}
+
+function openTeamModal(teamName, max) {
+  const form = document.getElementById('team-members-form');
+  form.innerHTML = '';
+  for(let i=0;i<max;i++){
+    const row = document.createElement('div'); row.className='team-row';
+    row.innerHTML = `<label>${T('member_n')} ${i+1}:</label>
+      <input type="text" id="tm-${i}" style="flex:1;background:var(--entry);color:var(--entry-fg);border:2px solid var(--card);border-radius:5px;padding:6px;font-family:inherit;font-size:13px">
+      <span id="tme-${i}" style="color:var(--red);font-size:11px;min-width:80px"></span>`;
+    form.appendChild(row);
+    document.getElementById(`tm-${i}`).addEventListener('input', () => {
+      const v = document.getElementById(`tm-${i}`).value.trim();
+      const r = validateName(v); document.getElementById(`tme-${i}`).textContent = r.ok||!v ? '' : r.msg;
+    });
+  }
+  if(max < TEAM_SIZE){
+    document.getElementById('team-err').textContent = T('members_note').replace('{}', max);
+    document.getElementById('team-err').style.color = 'var(--gold)';
+  } else document.getElementById('team-err').textContent = '';
+  document.getElementById('team-modal-title').textContent = T('team_members_win') + ' ' + teamName;
+  openModal('team-modal');
+}
+
+function saveTeamMembers() {
+  const max = pendingTeamMaxMembers;
+  let mems = [], err=false;
+  for(let i=0;i<max;i++){
+    const v = (document.getElementById(`tm-${i}`)||{value:''}).value.trim();
+    const r = validateName(v);
+    if(!r.ok){ document.getElementById(`tme-${i}`).textContent=r.msg; err=true; }
+    else { document.getElementById(`tme-${i}`).textContent=''; mems.push(v); }
+  }
+  if(err) return;
+  const team = getParticipant(pendingTeamName);
+  if(team) {
+    for(const m of mems){
+      if(countTotalPeople() >= REQUIRED) break;
+      team.members.push(m);
+    }
+  }
+  saveData(); closeModal('team-modal');
+  refreshList(); refreshCombo(); updateStatus();
+}
+
+function refreshList() {
+  const list = document.getElementById('part-list');
+  if(!list) return;
+  list.innerHTML = '';
+  const indivs = participants.filter(p=>!p.isTeam);
+  const teams = participants.filter(p=>p.isTeam);
+  if(indivs.length){
+    const h=document.createElement('div'); h.className='list-header';
+    h.textContent=`── ${T('individual_lbl')} (${indivs.length}) ──`; list.appendChild(h);
+    indivs.forEach(p=>{
+      const d=document.createElement('div'); d.className='list-item'; d.textContent='   '+p.name; list.appendChild(d);
+    });
+  }
+  if(teams.length){
+    const h=document.createElement('div'); h.className='list-header';
+    h.textContent=`── ${T('teams_lbl')} (${teams.length}/${MAX_TEAMS}) ──`; list.appendChild(h);
+    teams.forEach(p=>{
+      const tag = T('members_in_team').replace('{cur}',p.members.length).replace('{max}',TEAM_SIZE);
+      const mem = p.members.length ? `  (${p.members.join(', ')})` : `  ${T('no_members')}`;
+      const d=document.createElement('div'); d.className='list-item';
+      d.textContent=`   ${p.name}  ${tag}${mem}`; list.appendChild(d);
+    });
+  }
+  if(!participants.length){
+    const d=document.createElement('div'); d.className='list-item'; d.textContent=T('no_participants'); list.appendChild(d);
+  }
+}
+
+function refreshCombo() {
+  const sel = document.getElementById('part-combo'); if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">—</option>`;
+  participants.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=p.name; sel.appendChild(o); });
+  if(cur) sel.value = cur;
+}
+
+function updateStatus() {
+  const total = countTotalPeople(), ind=countIndividuals(), tmem=total-ind;
+  const col = total>=REQUIRED ? 'var(--green)' : 'var(--red)';
+  const t1=document.getElementById('status-total'), t2=document.getElementById('req-total');
+  const sb=document.getElementById('status-break'), rs=document.getElementById('req-status');
+  if(t1){ t1.textContent=`${T('total_people')} ${total}/${REQUIRED}`; t1.style.color=col; }
+  if(t2){ t2.textContent=`${T('total_people')} ${total}/${REQUIRED}`; t2.style.color=col; }
+  if(sb) sb.textContent=`(${T('individuals_lbl')} ${ind}  |  ${T('team_members_lbl')} ${tmem})`;
+  if(rs){
+    const ready = total>=REQUIRED;
+    rs.textContent = ready ? T('completed') : T('missing_n').replace('{n}',REQUIRED-total);
+    rs.style.color = ready ? 'var(--green)' : 'var(--red)';
+  }
+}
+
+// ══════ SCORES ══════
+function buildEventsTable() {
+  const tbody = document.getElementById('events-body'); if(!tbody) return;
+  tbody.innerHTML = '';
+  FIXED_EVENTS.forEach((ev,i) => {
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${ev}</td>
+      <td><input type="number" class="score-entry" id="pts-${i}" disabled min="1" step="1" style="background:var(--entry);color:var(--entry-fg);border:2px solid var(--card);border-radius:5px;padding:5px 8px;text-align:center;font-family:inherit;font-size:13px;width:90px"></td>
+      <td class="saved-pts" id="sv-${i}">—</td>
+      <td><button class="btn btn-gold" id="svbtn-${i}" disabled onclick="saveScore(${i})" style="padding:5px 14px;font-size:12px">${T('save_btn')}</button>
+          <span id="pte-${i}" style="color:var(--red);font-size:11px;margin-right:4px"></span></td>`;
+    tbody.appendChild(tr);
+    document.getElementById(`pts-${i}`).addEventListener('input', () => {
+      const v=document.getElementById(`pts-${i}`).value;
+      const r=validatePoints(v); document.getElementById(`pte-${i}`).textContent=r.ok||!v?'':r.msg;
+    });
+  });
+  reloadCurrentParticipantScores();
+}
+
+function onPartSelected() {
+  const name = document.getElementById('part-combo').value;
+  const p = getParticipant(name);
+  clearErr('mode-err'); document.getElementById('mode-info').textContent='';
+  if(!p){ disableEventRows(); return; }
+  if(p.mode){
+    document.querySelector(`input[name="smode"][value="${p.mode}"]`).checked=true;
+    document.getElementById('r-single').disabled=true; document.getElementById('r-full').disabled=true;
+    const mt = p.mode==='single' ? T('single_event') : T('five_events');
+    document.getElementById('mode-info').textContent=`${T('mode_set')} ${mt}`;
+    activateRows(p);
+  } else {
+    document.querySelectorAll('input[name="smode"]').forEach(r=>r.checked=false);
+    document.getElementById('r-single').disabled=false; document.getElementById('r-full').disabled=false;
+    document.getElementById('mode-info').textContent=T('choose_first');
+    disableEventRows();
+  }
+}
+
+function onModeChanged() {
+  const name = document.getElementById('part-combo').value;
+  if(!name){ showErr('mode-err', T('choose_part_first')); document.querySelectorAll('input[name="smode"]').forEach(r=>r.checked=false); return; }
+  clearErr('mode-err');
+  const p=getParticipant(name); if(!p||p.mode) return;
+  const mode=document.querySelector('input[name="smode"]:checked').value;
+  const mt=mode==='single'?T('single_event'):T('five_events');
+  document.getElementById('mode-info').textContent=`${T('mode_chosen')} ${mt}`;
+  if(mode==='single' && !Object.keys(p.scores).length){
+    pendingEventParticipant=p; openSingleEventChooser(p);
+  } else activateRows(p);
+}
+
+function openSingleEventChooser(p) {
+  document.getElementById('event-modal-title').textContent=`${T('choose_event')} ${p.name}`;
+  const ec=document.getElementById('event-choices'); ec.innerHTML='';
+  currentEventChoice=FIXED_EVENTS[0];
+  FIXED_EVENTS.forEach(ev=>{
+    const lbl=document.createElement('label');
+    lbl.style.cssText='display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px';
+    lbl.innerHTML=`<input type="radio" name="evch" value="${ev}" ${ev===FIXED_EVENTS[0]?'checked':''}> ${ev}`;
+    lbl.querySelector('input').addEventListener('change',()=>currentEventChoice=ev);
+    ec.appendChild(lbl);
+  });
+  openModal('event-modal');
+}
+
+function confirmEvent() {
+  const p=pendingEventParticipant; if(!p) return;
+  p.mode = document.querySelector('input[name="smode"]:checked').value;
+  saveData(); closeModal('event-modal');
+  FIXED_EVENTS.forEach((_,i)=>{
+    const on=FIXED_EVENTS[i]===currentEventChoice;
+    document.getElementById(`pts-${i}`).disabled=!on;
+    document.getElementById(`svbtn-${i}`).disabled=!on;
+  });
+  document.getElementById('mode-info').textContent=`${T('mode_single_info')} ${currentEventChoice}`;
+  document.getElementById('r-single').disabled=true; document.getElementById('r-full').disabled=true;
+  reloadCurrentParticipantScores();
+}
+
+function activateRows(p) {
+  const mode = document.querySelector('input[name="smode"]:checked')?.value || p.mode;
+  FIXED_EVENTS.forEach((ev,i)=>{
+    const sv=document.getElementById(`sv-${i}`);
+    sv.textContent = p.scores[ev]!==undefined ? p.scores[ev] : '—';
+    sv.style.color = p.scores[ev]!==undefined ? 'var(--green)' : 'var(--fg)';
+    document.getElementById(`pts-${i}`).value='';
+    document.getElementById(`pte-${i}`).textContent='';
+    if(mode==='full'){
+      document.getElementById(`pts-${i}`).disabled=false;
+      document.getElementById(`svbtn-${i}`).disabled=false;
+    } else {
+      const reg=Object.keys(p.scores)[0]||currentEventChoice;
+      const on=FIXED_EVENTS[i]===reg;
+      document.getElementById(`pts-${i}`).disabled=!on;
+      document.getElementById(`svbtn-${i}`).disabled=!on;
+    }
+  });
+  calcTotal(p);
+}
+
+function disableEventRows() {
+  FIXED_EVENTS.forEach((_,i)=>{
+    document.getElementById(`pts-${i}`).disabled=true;
+    document.getElementById(`svbtn-${i}`).disabled=true;
+    document.getElementById(`pts-${i}`).value='';
+    document.getElementById(`sv-${i}`).textContent='—';
+    document.getElementById(`sv-${i}`).style.color='var(--green)';
+    document.getElementById(`pte-${i}`).textContent='';
+  });
+  const tl=document.getElementById('total-lbl'); if(tl) tl.textContent='—';
+}
+
+function reloadCurrentParticipantScores() {
+  const name=document.getElementById('part-combo')?.value;
+  const p=getParticipant(name); if(!p){disableEventRows();return;}
+  activateRows(p);
+}
+
+function saveScore(idx) {
+  const name=document.getElementById('part-combo').value;
+  if(!name){ alert(T('choose_part_first')); return; }
+  const mode=document.querySelector('input[name="smode"]:checked')?.value;
+  if(!mode){ showErr('mode-err',T('choose_mode_first')); return; }
+  const ptsStr=document.getElementById(`pts-${idx}`).value;
+  const r=validatePoints(ptsStr);
+  if(!r.ok){ document.getElementById(`pte-${idx}`).textContent=r.msg; return; }
+  document.getElementById(`pte-${idx}`).textContent='';
+  const p=getParticipant(name); if(!p) return;
+  if(!p.mode) p.mode=mode;
+  p.scores[FIXED_EVENTS[idx]]=parseInt(ptsStr);
+  const sv=document.getElementById(`sv-${idx}`);
+  sv.textContent=ptsStr; sv.style.color='var(--green)';
+  document.getElementById(`pts-${idx}`).value='';
+  document.getElementById('r-single').disabled=true; document.getElementById('r-full').disabled=true;
+  saveData(); calcTotal(p);
+}
+
+function calcTotal(p) {
+  const t=Object.values(p.scores).reduce((a,b)=>a+b,0);
+  const tl=document.getElementById('total-lbl'); if(tl) tl.textContent=t||'—';
+}
+
+// ══════ BOARD ══════
+function showBoard() {
+  const total=countTotalPeople();
+  if(total < REQUIRED){
+    const ind=countIndividuals(), tmem=total-ind;
+    alert(`${T('missing_people').replace('{n}',REQUIRED-total)}\n\n${T('total_people')} ${total}/${REQUIRED}\n  • ${T('individuals_lbl')} ${ind}\n  • ${T('team_members_lbl')} ${tmem}`);
+    return;
+  }
+  if(participants.every(p=>Object.keys(p.scores).length===0)){
+    alert(T('no_scores')); return;
+  }
+  const board = participants.map(p=>({name:p.name,pts:Object.values(p.scores).reduce((a,b)=>a+b,0)}))
+    .sort((a,b)=>b.pts-a.pts);
+  const area=document.getElementById('board-area'); area.innerHTML='';
+
+  const trophy=document.createElement('div'); trophy.style.textAlign='center';
+  trophy.innerHTML=`<div style="font-size:52px">🏆</div><div class="board-title">${T('results_title')}</div><hr style="border-color:var(--gold);margin:8px 40px">`;
+  area.appendChild(trophy);
+
+  const rankCls=['rank1-card','rank2-card','rank3-card'];
+  const rankKeys=['rank1','rank2','rank3'];
+  const rankColors=['var(--gold)','var(--silver)','var(--bronze)'];
+
+  board.slice(0,3).forEach((e,i)=>{
+    const p=getParticipant(e.name);
+    const card=document.createElement('div'); card.className=`rank-card ${rankCls[i]}`;
+    let inner=`<div class="rank-header">
+      <span class="rank-medal">${T(rankKeys[i])}</span>
+      <span class="rank-name">${e.name}</span>
+      <span class="rank-pts" style="color:${rankColors[i]}">  |  ${T('total_score')} ${e.pts}</span>
+    </div>`;
+    if(p&&p.isTeam&&p.members.length) inner+=`<div class="rank-members">${T('members_lbl')} ${p.members.join(' ،  ')}</div>`;
+    if(p&&Object.keys(p.scores).length){
+      inner+=`<div class="rank-events">`;
+      Object.entries(p.scores).forEach(([ev,sc])=>{ inner+=`<span>[${ev}: ${sc}]</span>`; });
+      inner+=`</div>`;
+    }
+    card.innerHTML=inner; area.appendChild(card);
+  });
+
+  if(board.length>3){
+    const sep=document.createElement('hr'); sep.style.cssText='border-color:var(--gold);margin:10px 20px'; area.appendChild(sep);
+    const rest=document.createElement('div'); rest.style.cssText='text-align:center;color:var(--fg2);margin-bottom:8px;font-size:14px';
+    rest.textContent=T('rest_title'); area.appendChild(rest);
+    board.slice(3).forEach((e,i)=>{
+      const p=getParticipant(e.name);
+      const row=document.createElement('div'); row.className='other-rank';
+      row.innerHTML=`<span style="font-weight:bold">#${i+4}  ${e.name}</span>
+        <span style="color:var(--gold)">${T('total_score')} ${e.pts}</span>
+        ${p&&p.isTeam&&p.members.length?`<span style="color:var(--fg2);font-size:12px">${T('members_lbl')} ${p.members.join(', ')}</span>`:''}`;
+      area.appendChild(row);
+    });
+  }
+
+  if(board.length) setTimeout(()=>alert(T('winner_msg').replace('{}',board[0].name)),200);
+  updateStatus();
+}
+
+function clearAll() {
+  if(!participants.length){ alert(T('system_empty')); return; }
+  if(confirm(T('confirm_delete'))){
+    participants=[];  saveData();
+    refreshList(); refreshCombo(); disableEventRows();
+    document.getElementById('board-area').innerHTML='';
+    document.querySelectorAll('input[name="smode"]').forEach(r=>r.checked=false);
+    document.getElementById('r-single').disabled=false; document.getElementById('r-full').disabled=false;
+    document.getElementById('mode-info').textContent=''; clearErr('mode-err');
+    updateStatus();
+    showToast(T('deleted_success'));
+  }
+}
+
+// ══════ HELPERS ══════
+function showErr(id, msg) { const e=document.getElementById(id); if(e){e.textContent=msg;e.style.color='var(--red)';} }
+function clearErr(id) { const e=document.getElementById(id); if(e) e.textContent=''; }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openAccPanel(){ document.getElementById('font-lbl').textContent=fontSize; openModal('acc-modal'); }
+
+function showToast(msg, dur=2500) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+// ══════ INIT ══════
+makeStars();
+translateAll();
+</script>
+</body>
+</html>
